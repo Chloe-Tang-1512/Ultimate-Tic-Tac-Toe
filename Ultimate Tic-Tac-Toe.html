@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ultimate Tic-Tac-Toe</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>❎</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F5F3EE; --surface: #FFFFFF; --line: #D9D5CB; --text: #1C1B19; --muted: #6E6A60;
+    --c0: #2E5AAC; --c1: #C1652A; --glow: #2E5AAC;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15161A; --surface: #1E2026; --line: #34363E; --text: #EDEDEE; --muted: #9A9AA3;
+      --c0: #7FA6FF; --c1: #FFA35C; --glow: #7FA6FF;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15161A; --surface: #1E2026; --line: #34363E; --text: #EDEDEE; --muted: #9A9AA3;
+    --c0: #7FA6FF; --c1: #FFA35C; --glow: #7FA6FF;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0; min-height: 100%; background: var(--bg); color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    padding: max(24px, env(safe-area-inset-top, 0px)) 20px max(24px, env(safe-area-inset-bottom, 0px));
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+  }
+  h1 { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: clamp(1.4rem, 4vw, 1.9rem); margin: 4px 0 0; }
+  .sub { color: var(--muted); font-size: 0.92rem; max-width: 420px; text-align: center; line-height: 1.5; margin: 0; }
+  .modes { display: flex; gap: 8px; margin-top: 4px; }
+  .mode-btn {
+    font-family: 'Inter'; font-weight: 600; font-size: 0.85rem; padding: 7px 16px;
+    border-radius: 20px; border: 1.5px solid var(--line); background: transparent;
+    color: var(--muted); cursor: pointer; transition: border-color .2s, color .2s;
+  }
+  .mode-btn.active { border-color: var(--glow); color: var(--text); }
+  .mode-btn:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
+  .status {
+    font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 1.05rem;
+    display: flex; align-items: center; gap: 8px; min-height: 28px; text-align: center;
+  }
+  .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+  .dot.p0 { background: var(--c0); } .dot.p1 { background: var(--c1); }
+  .game {
+    display: grid; gap: clamp(6px, 1.6vmin, 12px); background: var(--line); border-radius: 14px;
+    padding: clamp(6px, 1.6vmin, 12px); width: min(94vw, 92vh - 240px, 540px); aspect-ratio: 1;
+  }
+  .board {
+    display: grid; gap: 2px; background: var(--line); border-radius: 6px;
+    overflow: hidden; position: relative; transition: box-shadow 0.25s ease;
+  }
+  .board.active { box-shadow: 0 0 0 3px var(--glow) inset, 0 0 14px -2px var(--glow); }
+  .board.decided .cell { opacity: 0.3; }
+  .board.draw { background-image: repeating-linear-gradient(45deg, var(--line), var(--line) 5px, var(--surface) 5px, var(--surface) 10px); }
+  .cell { background: var(--surface); border: none; padding: 0; margin: 0; position: relative; cursor: pointer; }
+  .cell:disabled { cursor: default; }
+  .cell:not(:disabled):hover { filter: brightness(0.96); }
+  @media (prefers-color-scheme: dark) { .cell:not(:disabled):hover { filter: brightness(1.2); } }
+  .cell:focus-visible { outline: 2px solid var(--glow); outline-offset: -2px; }
+  .cell svg { position: absolute; inset: 18%; width: 64%; height: 64%; }
+  .overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 2; }
+  .overlay svg { width: 66%; height: 66%; }
+  .mark .shape, .overlay .shape { stroke-width: 10; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .p0 .shape { stroke: var(--c0); } .p1 .shape { stroke: var(--c1); }
+  button.reset {
+    font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.9rem;
+    background: transparent; color: var(--text); border: 1.5px solid var(--line);
+    border-radius: 8px; padding: 9px 18px; cursor: pointer; transition: border-color 0.2s ease;
+  }
+  button.reset:hover { border-color: var(--muted); }
+  button.reset:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
+</style>
+</head>
+<body>
+  <h1>Ultimate Tic-Tac-Toe</h1>
+  <p class="sub">Win three small boards in a row to win the game. Wherever you play inside a board sends the next move to that same-position board.</p>
+  <div class="modes">
+    <button class="mode-btn" id="mode-2" type="button">2 players</button>
+    <button class="mode-btn" id="mode-teams" type="button">2v2 teams</button>
+  </div>
+  <div class="status" id="status"></div>
+  <div class="game" id="game"></div>
+  <button class="reset" id="reset">New game</button>
+
+<script>
+const CONFIGS = {
+  '2': {
+    n: 3, win: 3,
+    marks: [{ shape: 'x', teamLabel: 'X' }, { shape: 'o', teamLabel: 'O' }],
+    turns: [{ mark: 0, label: 'X to move' }, { mark: 1, label: 'O to move' }]
+  },
+  'teams': {
+    n: 3, win: 3,
+    marks: [{ shape: 'x', teamLabel: 'Team X' }, { shape: 'o', teamLabel: 'Team O' }],
+    turns: [
+      { mark: 0, label: 'Team X — Player 1 to move' },
+      { mark: 1, label: 'Team O — Player 1 to move' },
+      { mark: 0, label: 'Team X — Player 2 to move' },
+      { mark: 1, label: 'Team O — Player 2 to move' }
+    ]
+  }
+};
+
+function shapeMarkup(shape) {
+  return shape === 'x'
+    ? '<line class="shape" x1="18" y1="18" x2="82" y2="82"/><line class="shape" x1="82" y1="18" x2="18" y2="82"/>'
+    : '<circle class="shape" cx="50" cy="50" r="30"/>';
+}
+function markSVG(idx, cls) {
+  return `<svg class="${cls} p${idx}" viewBox="0 0 100 100">${shapeMarkup(marks[idx].shape)}</svg>`;
+}
+
+const linesCache = {};
+function getLines(n, k) {
+  const key = n + '_' + k;
+  if (linesCache[key]) return linesCache[key];
+  const dirs = [[0,1],[1,0],[1,1],[1,-1]];
+  const lines = [];
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) for (const [dr, dc] of dirs) {
+    const line = [];
+    let ok = true;
+    for (let i = 0; i < k; i++) {
+      const rr = r + dr*i, cc = c + dc*i;
+      if (rr < 0 || rr >= n || cc < 0 || cc >= n) { ok = false; break; }
+      line.push(rr*n + cc);
+    }
+    if (ok) lines.push(line);
+  }
+  linesCache[key] = lines;
+  return lines;
+}
+function checkWinIdx(arr, n, k) {
+  for (const line of getLines(n, k)) {
+    const v = arr[line[0]];
+    if (v === null || v === 'D') continue;
+    if (line.every(i => arr[i] === v)) return v;
+  }
+  return null;
+}
+
+let N, WIN, marks, turns, currentMode = '2';
+let cells, boardWinners, activeBoard, turnIdx, over, winnerIdx;
+let boardEls = [], cellEls = [];
+const gameEl = document.getElementById('game');
+const statusEl = document.getElementById('status');
+
+function buildDOM() {
+  gameEl.innerHTML = '';
+  gameEl.style.gridTemplateColumns = `repeat(${N},1fr)`;
+  gameEl.style.gridTemplateRows = `repeat(${N},1fr)`;
+  boardEls = []; cellEls = [];
+  for (let b = 0; b < N*N; b++) {
+    const boardEl = document.createElement('div');
+    boardEl.className = 'board';
+    boardEl.style.gridTemplateColumns = `repeat(${N},1fr)`;
+    boardEl.style.gridTemplateRows = `repeat(${N},1fr)`;
+    const row = [];
+    for (let c = 0; c < N*N; c++) {
+      const cellEl = document.createElement('button');
+      cellEl.className = 'cell';
+      cellEl.type = 'button';
+      cellEl.addEventListener('click', () => play(b, c));
+      boardEl.appendChild(cellEl);
+      row.push(cellEl);
+    }
+    gameEl.appendChild(boardEl);
+    boardEls.push(boardEl);
+    cellEls.push(row);
+  }
+}
+
+function init() {
+  const size = N*N;
+  cells = Array(size*size).fill(null);
+  boardWinners = Array(size).fill(null);
+  activeBoard = null; turnIdx = 0; over = false; winnerIdx = null;
+  for (let b = 0; b < size; b++) {
+    boardEls[b].className = 'board';
+    for (let c = 0; c < size; c++) { cellEls[b][c].innerHTML = ''; cellEls[b][c].disabled = false; }
+  }
+  updateActiveHighlight();
+  updateStatus();
+}
+
+function updateActiveHighlight() {
+  const size = N*N;
+  for (let b = 0; b < size; b++) {
+    const isOpen = !boardWinners[b];
+    const isActive = !over && isOpen && (activeBoard === null || activeBoard === b);
+    boardEls[b].classList.toggle('active', isActive);
+    for (let c = 0; c < size; c++) {
+      cellEls[b][c].disabled = over || !isActive || cells[b*size + c] !== null;
+    }
+  }
+}
+
+function updateStatus() {
+  if (over) {
+    statusEl.innerHTML = winnerIdx === 'D'
+      ? "It's a draw."
+      : `<span class="dot p${winnerIdx}"></span> ${marks[winnerIdx].teamLabel} wins the game`;
+    return;
+  }
+  const where = activeBoard === null ? 'any open board' : `board ${activeBoard + 1}`;
+  const markIdx = turns[turnIdx].mark;
+  statusEl.innerHTML = `<span class="dot p${markIdx}"></span> ${turns[turnIdx].label} — play in ${where}`;
+}
+
+function play(b, c) {
+  if (over) return;
+  const size = N*N;
+  const isOpen = !boardWinners[b];
+  const isActive = isOpen && (activeBoard === null || activeBoard === b);
+  const idx = b*size + c;
+  if (!isActive || cells[idx] !== null) return;
+
+  const markIdx = turns[turnIdx].mark;
+  cells[idx] = markIdx;
+  cellEls[b][c].innerHTML = markSVG(markIdx, 'mark');
+  cellEls[b][c].disabled = true;
+
+  const boardVals = cells.slice(b*size, b*size + size);
+  const boardWin = checkWinIdx(boardVals, N, WIN);
+  if (boardWin !== null) {
+    boardWinners[b] = boardWin;
+    boardEls[b].classList.add('decided');
+    const ov = document.createElement('div');
+    ov.className = 'overlay';
+    ov.innerHTML = markSVG(boardWin, 'overlay');
+    boardEls[b].appendChild(ov);
+  } else if (boardVals.every(v => v !== null)) {
+    boardWinners[b] = 'D';
+    boardEls[b].classList.add('decided', 'draw');
+  }
+
+  const gameWin = checkWinIdx(boardWinners, N, WIN);
+  if (gameWin !== null) { over = true; winnerIdx = gameWin; }
+  else if (boardWinners.every(v => v !== null)) { over = true; winnerIdx = 'D'; }
+  else {
+    activeBoard = boardWinners[c] ? null : c;
+    turnIdx = (turnIdx + 1) % turns.length;
+  }
+  updateActiveHighlight();
+  updateStatus();
+}
+
+function setMode(key) {
+  currentMode = key;
+  const cfg = CONFIGS[key];
+  N = cfg.n; WIN = cfg.win; marks = cfg.marks; turns = cfg.turns;
+  document.getElementById('mode-2').classList.toggle('active', key === '2');
+  document.getElementById('mode-teams').classList.toggle('active', key === 'teams');
+  buildDOM();
+  init();
+}
+
+document.getElementById('mode-2').addEventListener('click', () => setMode('2'));
+document.getElementById('mode-teams').addEventListener('click', () => setMode('teams'));
+document.getElementById('reset').addEventListener('click', () => setMode(currentMode));
+setMode('2');
+</script>
+</body>
+</html>
