@@ -40,7 +40,11 @@
   .status {
     font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 1.05rem;
     display: flex; align-items: center; gap: 8px; min-height: 28px; text-align: center;
+    transition: font-size 0.2s ease;
   }
+  .status.over { font-size: 1.4rem; animation: popIn 0.35s ease; }
+  .status.win { color: var(--glow); }
+  @keyframes popIn { from { transform: scale(0.82); opacity: 0; } to { transform: scale(1); opacity: 1; } }
   .game {
     display: grid; gap: clamp(6px, 1.6vmin, 12px); background: var(--line); border-radius: 14px;
     padding: clamp(6px, 1.6vmin, 12px); width: min(94vw, 92vh - 240px, 540px); aspect-ratio: 1;
@@ -53,6 +57,16 @@
   .board.active { box-shadow: 0 0 0 3px var(--glow) inset, 0 0 14px -2px var(--glow); }
   .board.decided .cell { opacity: 0.3; }
   .board.draw { background-image: repeating-linear-gradient(45deg, var(--line), var(--line) 5px, var(--surface) 5px, var(--surface) 10px); }
+  .game.game-over .board:not(.win-line) { opacity: 0.3; transition: opacity 0.4s ease; }
+  .board.win-line { animation: winPulse 1.3s ease-in-out infinite; }
+  @keyframes winPulse {
+    0%, 100% { box-shadow: 0 0 0 3px var(--glow) inset, 0 0 12px 1px var(--glow); }
+    50% { box-shadow: 0 0 0 3px var(--glow) inset, 0 0 26px 6px var(--glow); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .board.win-line { animation: none; box-shadow: 0 0 0 3px var(--glow) inset, 0 0 18px 3px var(--glow); }
+    .status.over { animation: none; }
+  }
   .cell { background: var(--surface); border: none; padding: 0; margin: 0; position: relative; cursor: pointer; container-type: size; }
   .cell:disabled { cursor: default; }
   .cell:not(:disabled):hover { filter: brightness(0.96); }
@@ -174,6 +188,14 @@ function checkWinIdx(arr, n, k) {
   }
   return null;
 }
+function findWinningLine(arr, n, k) {
+  for (const line of getLines(n, k)) {
+    const v = arr[line[0]];
+    if (v === null || v === 'D') continue;
+    if (line.every(i => arr[i] === v)) return line;
+  }
+  return null;
+}
 
 let N, WIN, turns, currentMode = '2';
 let cells, boardWinners, activeBoard, turnIdx, over, winnerIdx;
@@ -211,6 +233,7 @@ function init() {
   cells = Array(size*size).fill(null);
   boardWinners = Array(size).fill(null);
   activeBoard = null; turnIdx = 0; over = false; winnerIdx = null;
+  gameEl.classList.remove('game-over');
   for (let b = 0; b < size; b++) {
     boardEls[b].className = 'board';
     for (let c = 0; c < size; c++) { cellEls[b][c].innerHTML = ''; cellEls[b][c].disabled = false; }
@@ -232,13 +255,20 @@ function updateActiveHighlight() {
 }
 
 function updateStatus() {
+  statusEl.classList.remove('over', 'win');
   if (over) {
-    statusEl.innerHTML = winnerIdx === 'D' ? "It's a draw." : winLabel(winnerIdx);
+    statusEl.classList.add('over');
+    if (winnerIdx === 'D') {
+      statusEl.textContent = "It's a draw.";
+    } else {
+      statusEl.classList.add('win');
+      statusEl.textContent = winLabel(winnerIdx);
+    }
     return;
   }
   const where = activeBoard === null ? 'any open board' : `board ${activeBoard + 1}`;
   const t = turns[turnIdx];
-  statusEl.innerHTML = `${turnLabel(t)} — play in ${where}`;
+  statusEl.textContent = `${turnLabel(t)} — play in ${where}`;
 }
 
 function play(b, c) {
@@ -270,8 +300,13 @@ function play(b, c) {
   }
 
   const gameWin = checkWinIdx(boardWinners, N, WIN);
-  if (gameWin !== null) { over = true; winnerIdx = gameWin; }
-  else if (boardWinners.every(v => v !== null)) { over = true; winnerIdx = 'D'; }
+  if (gameWin !== null) {
+    over = true; winnerIdx = gameWin;
+    gameEl.classList.add('game-over');
+    const line = findWinningLine(boardWinners, N, WIN);
+    if (line) line.forEach(i => boardEls[i].classList.add('win-line'));
+  }
+  else if (boardWinners.every(v => v !== null)) { over = true; winnerIdx = 'D'; gameEl.classList.add('game-over'); }
   else {
     activeBoard = boardWinners[c] !== null ? null : c;
     turnIdx = (turnIdx + 1) % turns.length;
