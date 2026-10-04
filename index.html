@@ -4,25 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Ultimate Tic-Tac-Toe</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⭕❌</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚛️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #F5F3EE; --surface: #FFFFFF; --line: #D9D5CB; --text: #1C1B19; --muted: #6E6A60;
-    --c0: #2E5AAC; --c1: #C1652A; --glow: #2E5AAC;
+    --glow: #2E5AAC;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --bg: #15161A; --surface: #1E2026; --line: #34363E; --text: #EDEDEE; --muted: #9A9AA3;
-      --c0: #7FA6FF; --c1: #FFA35C; --glow: #7FA6FF;
     }
   }
-  :root[data-theme="dark"] {
-    --bg: #15161A; --surface: #1E2026; --line: #34363E; --text: #EDEDEE; --muted: #9A9AA3;
-    --c0: #7FA6FF; --c1: #FFA35C; --glow: #7FA6FF;
-  }
+  :root[data-theme="dark"] { --bg: #15161A; --surface: #1E2026; --line: #34363E; --text: #EDEDEE; --muted: #9A9AA3; }
   * { box-sizing: border-box; }
   html { scroll-padding-top: env(safe-area-inset-top, 0px); }
   body {
@@ -45,8 +41,6 @@
     font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 1.05rem;
     display: flex; align-items: center; gap: 8px; min-height: 28px; text-align: center;
   }
-  .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-  .dot.p0 { background: var(--c0); } .dot.p1 { background: var(--c1); }
   .game {
     display: grid; gap: clamp(6px, 1.6vmin, 12px); background: var(--line); border-radius: 14px;
     padding: clamp(6px, 1.6vmin, 12px); width: min(94vw, 92vh - 240px, 540px); aspect-ratio: 1;
@@ -54,20 +48,21 @@
   .board {
     display: grid; gap: 2px; background: var(--line); border-radius: 6px;
     overflow: hidden; position: relative; transition: box-shadow 0.25s ease;
+    container-type: size;
   }
   .board.active { box-shadow: 0 0 0 3px var(--glow) inset, 0 0 14px -2px var(--glow); }
   .board.decided .cell { opacity: 0.3; }
   .board.draw { background-image: repeating-linear-gradient(45deg, var(--line), var(--line) 5px, var(--surface) 5px, var(--surface) 10px); }
-  .cell { background: var(--surface); border: none; padding: 0; margin: 0; position: relative; cursor: pointer; }
+  .cell { background: var(--surface); border: none; padding: 0; margin: 0; position: relative; cursor: pointer; container-type: size; }
   .cell:disabled { cursor: default; }
   .cell:not(:disabled):hover { filter: brightness(0.96); }
   @media (prefers-color-scheme: dark) { .cell:not(:disabled):hover { filter: brightness(1.2); } }
   .cell:focus-visible { outline: 2px solid var(--glow); outline-offset: -2px; }
-  .cell svg { position: absolute; inset: 18%; width: 64%; height: 64%; }
-  .overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 2; }
-  .overlay svg { width: 100%; height: 100%; }
-  .mark .shape, .overlay .shape { stroke-width: 10; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-  .p0 .shape { stroke: var(--c0); } .p1 .shape { stroke: var(--c1); }
+  .mark-emoji { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; line-height: 1; font-size: 58cqmin; }
+  .overlay {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    pointer-events: none; z-index: 2; line-height: 1; font-size: 80cqmin;
+  }
   button.reset {
     font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.9rem;
     background: transparent; color: var(--text); border: 1.5px solid var(--line);
@@ -75,6 +70,23 @@
   }
   button.reset:hover { border-color: var(--muted); }
   button.reset:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
+  details.customize { width: min(94vw, 540px); border: 1.5px solid var(--line); border-radius: 12px; padding: 2px 16px 16px; }
+  details.customize summary { cursor: pointer; font-family: 'Space Grotesk'; font-weight: 600; font-size: 0.95rem; padding: 12px 0; list-style: none; color: var(--text); }
+  details.customize summary::-webkit-details-marker { display: none; }
+  details.customize summary::before { content: '▸  '; color: var(--muted); }
+  details.customize[open] summary::before { content: '▾  '; }
+  .custom-row { margin-top: 12px; }
+  .custom-row .label { font-size: 0.78rem; color: var(--muted); font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .swatches, .emojis { display: flex; gap: 10px; flex-wrap: wrap; }
+  .swatch { width: 30px; height: 30px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; padding: 0; background: var(--sw); }
+  .swatch.active { border-color: var(--text); }
+  .swatch:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
+  .emoji-btn {
+    width: 36px; height: 36px; border-radius: 8px; border: 1.5px solid var(--line); background: var(--surface);
+    cursor: pointer; font-size: 20px; line-height: 1; display: flex; align-items: center; justify-content: center; padding: 0;
+  }
+  .emoji-btn.active { border-color: var(--text); }
+  .emoji-btn:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
 </style>
 </head>
 <body>
@@ -87,38 +99,52 @@
   <div class="status" id="status"></div>
   <div class="game" id="game"></div>
   <button class="reset" id="reset">New game</button>
+  <details class="customize">
+    <summary>Customize</summary>
+    <div class="custom-row">
+      <div class="label">Color theme</div>
+      <div class="swatches" id="theme-swatches"></div>
+    </div>
+    <div class="custom-row">
+      <div class="label">Mark 1 symbol</div>
+      <div class="emojis" id="emoji-0"></div>
+    </div>
+    <div class="custom-row">
+      <div class="label">Mark 2 symbol</div>
+      <div class="emojis" id="emoji-1"></div>
+    </div>
+  </details>
 
 <script>
 const CONFIGS = {
-  '2': {
-    n: 3, win: 3,
-    marks: [{ shape: 'x', teamLabel: 'X' }, { shape: 'o', teamLabel: 'O' }],
-    turns: [{ mark: 0, label: 'X to move' }, { mark: 1, label: 'O to move' }]
-  },
-  'teams': {
-    n: 3, win: 3,
-    marks: [{ shape: 'x', teamLabel: 'Team X' }, { shape: 'o', teamLabel: 'Team O' }],
-    turns: [
-      { mark: 0, label: 'Team X — Player 1 to move' },
-      { mark: 1, label: 'Team O — Player 1 to move' },
-      { mark: 0, label: 'Team X — Player 2 to move' },
-      { mark: 1, label: 'Team O — Player 2 to move' }
-    ]
-  }
+  '2': { n: 3, win: 3, turns: [{ mark: 0 }, { mark: 1 }] },
+  'teams': { n: 3, win: 3, turns: [
+    { mark: 0, player: 1 }, { mark: 1, player: 1 },
+    { mark: 0, player: 2 }, { mark: 1, player: 2 }
+  ]}
 };
+const THEMES = [
+  { name: 'Classic', light: '#2E5AAC', dark: '#7FA6FF' },
+  { name: 'Ocean', light: '#1B7A8C', dark: '#5FD3E8' },
+  { name: 'Forest', light: '#2F7D4F', dark: '#6FD99A' },
+  { name: 'Berry', light: '#7B3FA0', dark: '#C9A3FF' },
+  { name: 'Mono', light: '#2A2A2A', dark: '#F2F2F2' }
+];
+const EMOJIS = ['⭕', '❌', '💧', '🔥', '🪨', '🌀', '⚡', '🩸', '💎', '💥', '⭐'];
+const emojiNames = { '⭕':'Circle', '❌':'Cross', '💧':'Water', '🔥':'Fire', '🪨':'Rock', '🌀':'Cyclone', '⚡':'Lightning', '🩸':'Blood', '💎':'Gem', '💥':'Boom', '⭐':'Star' };
+let emojiChoice = ['⭕', '❌'];
+let themeIdx = 0;
 
-function shapeMarkup(shape, big) {
-  if (shape === 'x') {
-    return big
-      ? '<line class="shape" x1="6" y1="6" x2="94" y2="94"/><line class="shape" x1="94" y1="6" x2="6" y2="94"/>'
-      : '<line class="shape" x1="18" y1="18" x2="82" y2="82"/><line class="shape" x1="82" y1="18" x2="18" y2="82"/>';
-  }
-  return big
-    ? '<circle class="shape" cx="50" cy="50" r="44"/>'
-    : '<circle class="shape" cx="50" cy="50" r="30"/>';
+function cellMarkup(markIdx) {
+  return `<span class="mark-emoji">${emojiChoice[markIdx]}</span>`;
 }
-function markSVG(idx, cls, big) {
-  return `<svg class="${cls} p${idx}" viewBox="0 0 100 100">${shapeMarkup(marks[idx].shape, big)}</svg>`;
+function turnLabel(t) {
+  const sym = emojiChoice[t.mark];
+  return t.player ? `Team ${sym} — Player ${t.player} to move` : `${sym} to move`;
+}
+function winLabel(markIdx) {
+  const sym = emojiChoice[markIdx];
+  return currentMode === 'teams' ? `Team ${sym} wins the game` : `${sym} wins the game`;
 }
 
 const linesCache = {};
@@ -149,9 +175,9 @@ function checkWinIdx(arr, n, k) {
   return null;
 }
 
-let N, WIN, marks, turns, currentMode = '2';
+let N, WIN, turns, currentMode = '2';
 let cells, boardWinners, activeBoard, turnIdx, over, winnerIdx;
-let boardEls = [], cellEls = [];
+let boardEls = [], cellEls = [], overlayEls = [];
 const gameEl = document.getElementById('game');
 const statusEl = document.getElementById('status');
 
@@ -159,7 +185,7 @@ function buildDOM() {
   gameEl.innerHTML = '';
   gameEl.style.gridTemplateColumns = `repeat(${N},1fr)`;
   gameEl.style.gridTemplateRows = `repeat(${N},1fr)`;
-  boardEls = []; cellEls = [];
+  boardEls = []; cellEls = []; overlayEls = Array(N*N).fill(null);
   for (let b = 0; b < N*N; b++) {
     const boardEl = document.createElement('div');
     boardEl.className = 'board';
@@ -207,14 +233,12 @@ function updateActiveHighlight() {
 
 function updateStatus() {
   if (over) {
-    statusEl.innerHTML = winnerIdx === 'D'
-      ? "It's a draw."
-      : `<span class="dot p${winnerIdx}"></span> ${marks[winnerIdx].teamLabel} wins the game`;
+    statusEl.innerHTML = winnerIdx === 'D' ? "It's a draw." : winLabel(winnerIdx);
     return;
   }
   const where = activeBoard === null ? 'any open board' : `board ${activeBoard + 1}`;
-  const markIdx = turns[turnIdx].mark;
-  statusEl.innerHTML = `<span class="dot p${markIdx}"></span> ${turns[turnIdx].label} — play in ${where}`;
+  const t = turns[turnIdx];
+  statusEl.innerHTML = `${turnLabel(t)} — play in ${where}`;
 }
 
 function play(b, c) {
@@ -227,7 +251,7 @@ function play(b, c) {
 
   const markIdx = turns[turnIdx].mark;
   cells[idx] = markIdx;
-  cellEls[b][c].innerHTML = markSVG(markIdx, 'mark');
+  cellEls[b][c].innerHTML = cellMarkup(markIdx);
   cellEls[b][c].disabled = true;
 
   const boardVals = cells.slice(b*size, b*size + size);
@@ -237,8 +261,9 @@ function play(b, c) {
     boardEls[b].classList.add('decided');
     const ov = document.createElement('div');
     ov.className = 'overlay';
-    ov.innerHTML = markSVG(boardWin, 'overlay', true);
+    ov.textContent = emojiChoice[boardWin];
     boardEls[b].appendChild(ov);
+    overlayEls[b] = ov;
   } else if (boardVals.every(v => v !== null)) {
     boardWinners[b] = 'D';
     boardEls[b].classList.add('decided', 'draw');
@@ -255,19 +280,75 @@ function play(b, c) {
   updateStatus();
 }
 
+function refreshMarks() {
+  const size = N*N;
+  for (let b = 0; b < size; b++) {
+    for (let c = 0; c < size; c++) {
+      if (cells[b*size + c] !== null) cellEls[b][c].innerHTML = cellMarkup(cells[b*size + c]);
+    }
+    if (typeof boardWinners[b] === 'number' && overlayEls[b]) {
+      overlayEls[b].textContent = emojiChoice[boardWinners[b]];
+    }
+  }
+}
+
 function setMode(key) {
   currentMode = key;
   const cfg = CONFIGS[key];
-  N = cfg.n; WIN = cfg.win; marks = cfg.marks; turns = cfg.turns;
+  N = cfg.n; WIN = cfg.win; turns = cfg.turns;
   document.getElementById('mode-2').classList.toggle('active', key === '2');
   document.getElementById('mode-teams').classList.toggle('active', key === 'teams');
   buildDOM();
   init();
 }
 
+function applyTheme(i) {
+  themeIdx = i;
+  const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+  document.documentElement.style.setProperty('--glow', THEMES[i][dark ? 'dark' : 'light']);
+  refreshCustomizeActive();
+}
+function setEmoji(markIdx, emoji) {
+  emojiChoice[markIdx] = emoji;
+  refreshCustomizeActive();
+  refreshMarks();
+  updateStatus();
+}
+function refreshCustomizeActive() {
+  document.querySelectorAll('#theme-swatches .swatch').forEach((b, i) => b.classList.toggle('active', i === themeIdx));
+  [0, 1].forEach(markIdx => {
+    const container = document.getElementById('emoji-' + markIdx);
+    [...container.children].forEach((b, i) => b.classList.toggle('active', EMOJIS[i] === emojiChoice[markIdx]));
+  });
+}
+function buildCustomizePanel() {
+  const swEl = document.getElementById('theme-swatches');
+  THEMES.forEach((t, i) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'swatch'; b.setAttribute('aria-label', t.name + ' theme');
+    b.style.setProperty('--sw', t.light);
+    b.addEventListener('click', () => applyTheme(i));
+    swEl.appendChild(b);
+  });
+  [0, 1].forEach(markIdx => {
+    const container = document.getElementById('emoji-' + markIdx);
+    EMOJIS.forEach(emoji => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'emoji-btn'; b.setAttribute('aria-label', emojiNames[emoji]);
+      b.textContent = emoji;
+      b.addEventListener('click', () => setEmoji(markIdx, emoji));
+      container.appendChild(b);
+    });
+  });
+  refreshCustomizeActive();
+}
+
 document.getElementById('mode-2').addEventListener('click', () => setMode('2'));
 document.getElementById('mode-teams').addEventListener('click', () => setMode('teams'));
 document.getElementById('reset').addEventListener('click', () => setMode(currentMode));
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => applyTheme(themeIdx));
+buildCustomizePanel();
+applyTheme(0);
 setMode('2');
 </script>
 </body>
