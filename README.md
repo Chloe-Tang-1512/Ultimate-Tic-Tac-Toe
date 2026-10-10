@@ -16,18 +16,24 @@ No build step, no dependencies, no server. It's one HTML file you can open direc
 - **2 players** — standard two-mark turns.
 - **2v2 teams** — two teams of two, turns alternate Team 1 Player 1 → Team 2 Player 1 → Team 1 Player 2 → Team 2 Player 2. Either teammate's move counts as a move for their team's mark.
 
-## Customize
+## Customise
 
-Open the **Customize** panel below the board to change:
+Open the **Customise** panel below the board to change:
 
-- **Color theme** — 5 accent colors (Classic, Ocean, Forest, Berry, Mono), used for the active-board glow and highlights. Adapts automatically to light/dark mode.
+- **Colour theme** — 5 accent colours (Classic, Ocean, Forest, Berry, Mono), used for the active-board glow and highlights. Adapts automatically to light/dark mode.
 - **Names** (2-player mode) — rename each player; shown in the status line (e.g. "⭕ Alice to move"). Leaving a field blank falls back to "Player 1" / "Player 2".
 - **Symbols** (2-player mode) — each mark can be set to any of 11 emoji (⭕ ❌ 💧 🔥 🪨 🌀 ⚡ 🩸 💎 💥 ⭐). The two marks can't share a symbol — whichever one the other mark is using is greyed out in the picker.
-- **Team setup** (2v2 mode) — each team picks a **color family** (Red, Orange, Yellow, Green, Blue, or Purple), and the two teammates then each pick their own emoji from *within* that family, so every symbol on their side is naturally the right color — no color tinting involved, just curated sets of emoji that are already that color. The two teams can't pick the same color family. Each team and each of its two players can also be renamed.
+- **Team setup** (2v2 mode) — each team picks a **colour family** (Red, Orange, Yellow, Green, Blue, or Purple), and the two teammates then each pick their own emoji from *within* that family, so every symbol on their side is naturally the right colour — no colour tinting involved, just curated sets of emoji that are already that colour. The two teams can't pick the same colour family. Each team and each of its two players can also be renamed.
 
 ## Running it
 
 Just open `ultimate-tic-tac-toe.html` in a browser — no installation needed.
+
+### Hosting on GitHub Pages
+
+1. Put `ultimate-tic-tac-toe.html` in your repo (rename to `index.html` if you want it at the root of your Pages site).
+2. Enable GitHub Pages for the repo (Settings → Pages → choose a branch/folder).
+3. Visit the published URL.
 
 ## Tech
 
