@@ -29,12 +29,6 @@ Open the **Customize** panel below the board to change:
 
 Just open `ultimate-tic-tac-toe.html` in a browser — no installation needed.
 
-### Hosting on GitHub Pages
-
-1. Put `ultimate-tic-tac-toe.html` in your repo (rename to `index.html` if you want it at the root of your Pages site).
-2. Enable GitHub Pages for the repo (Settings → Pages → choose a branch/folder).
-3. Visit the published URL.
-
 ## Tech
 
 Plain HTML, CSS, and vanilla JavaScript — no frameworks, no build tools, no external JS dependencies. Inter is loaded from Google Fonts for body text; headings use Consolas (falling back to Menlo/Monaco/Courier New/monospace on non-Windows systems).
