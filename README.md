@@ -9,24 +9,32 @@ No build step, no dependencies, no server. It's one HTML file you can open direc
 - The big board is a 3×3 grid of small boards, each a 3×3 grid of cells.
 - Whichever cell you play in sends your opponent to the same-position board next (e.g. play in the top-right cell of a board, and they must play in the top-right board).
 - If that target board is already won or full, your opponent is free to play in any open board.
-- Win three small boards in a row (horizontally, vertically, or diagonally) to win the game.
+- Win three small boards in a row (horizontally, vertically, or diagonally) to win the game. The winning line pulses and the rest of the board dims.
 
 ## Modes
 
-- **2 players** — standard X vs. O turns.
-- **2v2 teams** — two marks, two players per side, alternating: Team 1 → Team 2 → Team 1 → Team 2, so each side's players take turns on their team's mark.
+- **2 players** — standard two-mark turns.
+- **2v2 teams** — two teams of two, turns alternate Team 1 Player 1 → Team 2 Player 1 → Team 1 Player 2 → Team 2 Player 2. Either teammate's move counts as a move for their team's mark.
 
 ## Customize
 
 Open the **Customize** panel below the board to change:
 
 - **Color theme** — 5 accent colors (Classic, Ocean, Forest, Berry, Mono), used for the active-board glow and highlights. Adapts automatically to light/dark mode.
-- **Symbols** — each mark can be set to any of 11 emoji (⭕ ❌ 💧 🔥 🪨 🌀 ⚡ 🩸 💎 💥 ⭐). The two marks can't share a symbol — whichever one the other mark is using is greyed out in the picker.
+- **Names** (2-player mode) — rename each player; shown in the status line (e.g. "⭕ Alice to move"). Leaving a field blank falls back to "Player 1" / "Player 2".
+- **Symbols** (2-player mode) — each mark can be set to any of 11 emoji (⭕ ❌ 💧 🔥 🪨 🌀 ⚡ 🩸 💎 💥 ⭐). The two marks can't share a symbol — whichever one the other mark is using is greyed out in the picker.
+- **Team setup** (2v2 mode) — each team picks a **color family** (Red, Orange, Yellow, Green, Blue, or Purple), and the two teammates then each pick their own emoji from *within* that family, so every symbol on their side is naturally the right color — no color tinting involved, just curated sets of emoji that are already that color. The two teams can't pick the same color family. Each team and each of its two players can also be renamed.
 
 ## Running it
 
 Just open `ultimate-tic-tac-toe.html` in a browser — no installation needed.
 
+### Hosting on GitHub Pages
+
+1. Put `ultimate-tic-tac-toe.html` in your repo (rename to `index.html` if you want it at the root of your Pages site).
+2. Enable GitHub Pages for the repo (Settings → Pages → choose a branch/folder).
+3. Visit the published URL.
+
 ## Tech
 
-Plain HTML, CSS, and vanilla JavaScript — no frameworks, no build tools, no external JS dependencies. Fonts (Space Grotesk, Inter) are loaded from Google Fonts via CDN link tags.
+Plain HTML, CSS, and vanilla JavaScript — no frameworks, no build tools, no external JS dependencies. Inter is loaded from Google Fonts for body text; headings use Consolas (falling back to Menlo/Monaco/Courier New/monospace on non-Windows systems).
