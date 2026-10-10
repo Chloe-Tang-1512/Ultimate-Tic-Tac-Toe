@@ -7,7 +7,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚛️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #F5F3EE; --surface: #FFFFFF; --line: #D9D5CB; --text: #1C1B19; --muted: #6E6A60;
@@ -27,7 +27,7 @@
     padding: max(24px, env(safe-area-inset-top, 0px)) 20px max(24px, env(safe-area-inset-bottom, 0px));
     display: flex; flex-direction: column; align-items: center; gap: 14px;
   }
-  h1 { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: clamp(1.4rem, 4vw, 1.9rem); margin: 4px 0 0; }
+  h1 { font-family: Consolas, Menlo, Monaco, 'Courier New', monospace; font-weight: 700; font-size: clamp(1.3rem, 4vw, 1.7rem); letter-spacing: -0.01em; margin: 4px 0 0; }
   .sub { color: var(--muted); font-size: 0.92rem; max-width: 420px; text-align: center; line-height: 1.5; margin: 0; }
   .modes { display: flex; gap: 8px; margin-top: 4px; }
   .mode-btn {
@@ -38,11 +38,11 @@
   .mode-btn.active { border-color: var(--glow); color: var(--text); }
   .mode-btn:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
   .status {
-    font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 1.05rem;
+    font-family: Consolas, Menlo, Monaco, 'Courier New', monospace; font-weight: 600; font-size: 0.95rem;
     display: flex; align-items: center; gap: 8px; min-height: 28px; text-align: center;
     transition: font-size 0.2s ease;
   }
-  .status.over { font-size: 1.4rem; animation: popIn 0.35s ease; }
+  .status.over { font-size: 1.25rem; animation: popIn 0.35s ease; }
   .status.win { color: var(--glow); }
   @keyframes popIn { from { transform: scale(0.82); opacity: 0; } to { transform: scale(1); opacity: 1; } }
   .game {
@@ -85,15 +85,19 @@
   button.reset:hover { border-color: var(--muted); }
   button.reset:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
   details.customize { width: min(94vw, 540px); border: 1.5px solid var(--line); border-radius: 12px; padding: 2px 16px 16px; }
-  details.customize summary { cursor: pointer; font-family: 'Space Grotesk'; font-weight: 600; font-size: 0.95rem; padding: 12px 0; list-style: none; color: var(--text); }
+  details.customize summary { cursor: pointer; font-family: Consolas, Menlo, Monaco, 'Courier New', monospace; font-weight: 600; font-size: 0.9rem; padding: 12px 0; list-style: none; color: var(--text); }
   details.customize summary::-webkit-details-marker { display: none; }
   details.customize summary::before { content: '▸  '; color: var(--muted); }
   details.customize[open] summary::before { content: '▾  '; }
   .custom-row { margin-top: 12px; }
   .custom-row .label { font-size: 0.78rem; color: var(--muted); font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .team-block { padding: 12px; border: 1.5px solid var(--line); border-radius: 10px; }
+  .team-block + .team-block { margin-top: 12px; }
+  .team-block .label:not(:first-child) { margin-top: 12px; }
   .swatches, .emojis { display: flex; gap: 10px; flex-wrap: wrap; }
   .swatch { width: 30px; height: 30px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; padding: 0; background: var(--sw); }
   .swatch.active { border-color: var(--text); }
+  .swatch:disabled { opacity: 0.3; cursor: not-allowed; }
   .swatch:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
   .emoji-btn {
     width: 36px; height: 36px; border-radius: 8px; border: 1.5px solid var(--line); background: var(--surface);
@@ -102,6 +106,14 @@
   .emoji-btn.active { border-color: var(--text); }
   .emoji-btn:disabled { opacity: 0.35; cursor: not-allowed; }
   .emoji-btn:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
+  .name-input {
+    width: 100%; font-family: 'Inter'; font-size: 0.88rem; padding: 8px 10px;
+    border-radius: 8px; border: 1.5px solid var(--line); background: var(--surface); color: var(--text);
+  }
+  .name-input::placeholder { color: var(--muted); }
+  .name-input:focus-visible { outline: 2px solid var(--glow); outline-offset: 1px; }
+  .name-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .name-row .name-input { flex: 1; min-width: 120px; }
 </style>
 </head>
 <body>
@@ -120,13 +132,40 @@
       <div class="label">Color theme</div>
       <div class="swatches" id="theme-swatches"></div>
     </div>
-    <div class="custom-row">
-      <div class="label">Mark 1 symbol</div>
+    <div class="custom-row" id="symbols-2player">
+      <div class="label">Names</div>
+      <div class="name-row">
+        <input class="name-input" id="name-p0" type="text" maxlength="24" placeholder="Player 1">
+        <input class="name-input" id="name-p1" type="text" maxlength="24" placeholder="Player 2">
+      </div>
+      <div class="label" style="margin-top:12px">Mark 1 symbol</div>
       <div class="emojis" id="emoji-0"></div>
-    </div>
-    <div class="custom-row">
-      <div class="label">Mark 2 symbol</div>
+      <div class="label" style="margin-top:12px">Mark 2 symbol</div>
       <div class="emojis" id="emoji-1"></div>
+    </div>
+    <div class="custom-row" id="symbols-teams" hidden>
+      <div class="team-block">
+        <input class="name-input" id="name-team-0" type="text" maxlength="24" placeholder="Team 1">
+        <div class="label" style="margin-top:12px">Team color</div>
+        <div class="swatches" id="team-color-0"></div>
+        <div class="label">Player 1</div>
+        <input class="name-input" id="name-team-0-0" type="text" maxlength="24" placeholder="Player 1">
+        <div class="emojis" id="team-emoji-0-0" style="margin-top:8px"></div>
+        <div class="label">Player 2</div>
+        <input class="name-input" id="name-team-0-1" type="text" maxlength="24" placeholder="Player 2">
+        <div class="emojis" id="team-emoji-0-1" style="margin-top:8px"></div>
+      </div>
+      <div class="team-block">
+        <input class="name-input" id="name-team-1" type="text" maxlength="24" placeholder="Team 2">
+        <div class="label" style="margin-top:12px">Team color</div>
+        <div class="swatches" id="team-color-1"></div>
+        <div class="label">Player 1</div>
+        <input class="name-input" id="name-team-1-0" type="text" maxlength="24" placeholder="Player 1">
+        <div class="emojis" id="team-emoji-1-0" style="margin-top:8px"></div>
+        <div class="label">Player 2</div>
+        <input class="name-input" id="name-team-1-1" type="text" maxlength="24" placeholder="Player 2">
+        <div class="emojis" id="team-emoji-1-1" style="margin-top:8px"></div>
+      </div>
     </div>
   </details>
 
@@ -147,19 +186,63 @@ const THEMES = [
 ];
 const EMOJIS = ['⭕', '❌', '💧', '🔥', '🪨', '🌀', '⚡', '🩸', '💎', '💥', '⭐'];
 const emojiNames = { '⭕':'Circle', '❌':'Cross', '💧':'Water', '🔥':'Fire', '🪨':'Rock', '🌀':'Cyclone', '⚡':'Lightning', '🩸':'Blood', '💎':'Gem', '💥':'Boom', '⭐':'Star' };
+
+// Each team picks one of these color families; the two teammates then pick any
+// emoji from within it, so every symbol on their side is naturally that color —
+// no tinting, just curated sets of emoji that are already red, green, blue, etc.
+const COLOR_GROUPS = [
+  { name: 'Red',    hex: '#D64545', emojis: ['❤️','🟥','🔴','♦️','🩸','💢','⭕'] },
+  { name: 'Orange', hex: '#D97706', emojis: ['🧡','🟧','🟠','🔶','🦊','🍊','💥'] },
+  { name: 'Yellow', hex: '#CA8A04', emojis: ['💛','🟨','🟡','⭐','⚡','🌟','🍋'] },
+  { name: 'Green',  hex: '#2F9E44', emojis: ['💚','🟩','🟢','🧩','🔋','❇️','✳️'] },
+  { name: 'Blue',   hex: '#2563EB', emojis: ['💙','🟦','🔵','🔷','💎','🌀','💧'] },
+  { name: 'Purple', hex: '#7C3AED', emojis: ['💜','🟪','🟣','🔮','🍆','🦄','🍇'] }
+];
+
 let emojiChoice = ['⭕', '❌'];
 let themeIdx = 0;
+let teamColorIdx = [4, 0]; // default Team 1 = Blue, Team 2 = Red
+let teamSymbols = [
+  [COLOR_GROUPS[4].emojis[0], COLOR_GROUPS[4].emojis[1]],
+  [COLOR_GROUPS[0].emojis[0], COLOR_GROUPS[0].emojis[1]]
+];
+let playerNames = ['Player 1', 'Player 2'];
+let teamNames = ['Team 1', 'Team 2'];
+let teamPlayerNames = [['Player 1', 'Player 2'], ['Player 1', 'Player 2']];
 
-function cellMarkup(markIdx) {
-  return `<span class="mark-emoji">${emojiChoice[markIdx]}</span>`;
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+function teamColor(teamIdx) {
+  return COLOR_GROUPS[teamColorIdx[teamIdx]].hex;
+}
+
+function cellMarkup(markIdx, player) {
+  const emoji = (currentMode === 'teams' && player) ? teamSymbols[markIdx][player - 1] : emojiChoice[markIdx];
+  return `<span class="mark-emoji">${emoji}</span>`;
+}
+function overlayMarkup(markIdx) {
+  return currentMode === 'teams' ? teamSymbols[markIdx][0] : emojiChoice[markIdx];
 }
 function turnLabel(t) {
-  const sym = emojiChoice[t.mark];
-  return t.player ? `Team ${sym} — Player ${t.player} to move` : `${sym} to move`;
+  if (currentMode === 'teams') {
+    const sym = teamSymbols[t.mark][t.player - 1];
+    const team = esc(teamNames[t.mark].trim() || `Team ${t.mark + 1}`);
+    const player = esc(teamPlayerNames[t.mark][t.player - 1].trim() || `Player ${t.player}`);
+    return `${team} (${sym}) — ${player} to move`;
+  }
+  const name = esc(playerNames[t.mark].trim() || `Player ${t.mark + 1}`);
+  return `${emojiChoice[t.mark]} ${name} to move`;
 }
 function winLabel(markIdx) {
-  const sym = emojiChoice[markIdx];
-  return currentMode === 'teams' ? `Team ${sym} wins the game` : `${sym} wins the game`;
+  if (currentMode === 'teams') {
+    const team = esc(teamNames[markIdx].trim() || `Team ${markIdx + 1}`);
+    return `${team} wins the game`;
+  }
+  const name = esc(playerNames[markIdx].trim() || `Player ${markIdx + 1}`);
+  return `${emojiChoice[markIdx]} ${name} wins the game`;
 }
 
 const linesCache = {};
@@ -199,7 +282,7 @@ function findWinningLine(arr, n, k) {
 }
 
 let N, WIN, turns, currentMode = '2';
-let cells, boardWinners, activeBoard, turnIdx, over, winnerIdx;
+let cells, cellPlayer, boardWinners, activeBoard, turnIdx, over, winnerIdx;
 let boardEls = [], cellEls = [], overlayEls = [];
 const gameEl = document.getElementById('game');
 const statusEl = document.getElementById('status');
@@ -232,9 +315,11 @@ function buildDOM() {
 function init() {
   const size = N*N;
   cells = Array(size*size).fill(null);
+  cellPlayer = Array(size*size).fill(null);
   boardWinners = Array(size).fill(null);
   activeBoard = null; turnIdx = 0; over = false; winnerIdx = null;
   gameEl.classList.remove('game-over');
+  statusEl.style.color = '';
   for (let b = 0; b < size; b++) {
     boardEls[b].className = 'board';
     for (let c = 0; c < size; c++) { cellEls[b][c].innerHTML = ''; cellEls[b][c].disabled = false; }
@@ -257,19 +342,21 @@ function updateActiveHighlight() {
 
 function updateStatus() {
   statusEl.classList.remove('over', 'win');
+  statusEl.style.color = '';
   if (over) {
     statusEl.classList.add('over');
     if (winnerIdx === 'D') {
       statusEl.textContent = "It's a draw.";
     } else {
       statusEl.classList.add('win');
-      statusEl.textContent = winLabel(winnerIdx);
+      statusEl.innerHTML = winLabel(winnerIdx);
+      if (currentMode === 'teams') statusEl.style.color = teamColor(winnerIdx);
     }
     return;
   }
   const where = activeBoard === null ? 'any open board' : `board ${activeBoard + 1}`;
   const t = turns[turnIdx];
-  statusEl.textContent = `${turnLabel(t)} — play in ${where}`;
+  statusEl.innerHTML = `${turnLabel(t)} — play in ${where}`;
 }
 
 function play(b, c) {
@@ -281,8 +368,10 @@ function play(b, c) {
   if (!isActive || cells[idx] !== null) return;
 
   const markIdx = turns[turnIdx].mark;
+  const player = turns[turnIdx].player;
   cells[idx] = markIdx;
-  cellEls[b][c].innerHTML = cellMarkup(markIdx);
+  cellPlayer[idx] = player || null;
+  cellEls[b][c].innerHTML = cellMarkup(markIdx, player);
   cellEls[b][c].disabled = true;
 
   const boardVals = cells.slice(b*size, b*size + size);
@@ -292,7 +381,7 @@ function play(b, c) {
     boardEls[b].classList.add('decided');
     const ov = document.createElement('div');
     ov.className = 'overlay';
-    ov.textContent = emojiChoice[boardWin];
+    ov.textContent = overlayMarkup(boardWin);
     boardEls[b].appendChild(ov);
     overlayEls[b] = ov;
   } else if (boardVals.every(v => v !== null)) {
@@ -320,10 +409,11 @@ function refreshMarks() {
   const size = N*N;
   for (let b = 0; b < size; b++) {
     for (let c = 0; c < size; c++) {
-      if (cells[b*size + c] !== null) cellEls[b][c].innerHTML = cellMarkup(cells[b*size + c]);
+      const idx = b*size + c;
+      if (cells[idx] !== null) cellEls[b][c].innerHTML = cellMarkup(cells[idx], cellPlayer[idx]);
     }
     if (typeof boardWinners[b] === 'number' && overlayEls[b]) {
-      overlayEls[b].textContent = emojiChoice[boardWinners[b]];
+      overlayEls[b].textContent = overlayMarkup(boardWinners[b]);
     }
   }
 }
@@ -334,6 +424,8 @@ function setMode(key) {
   N = cfg.n; WIN = cfg.win; turns = cfg.turns;
   document.getElementById('mode-2').classList.toggle('active', key === '2');
   document.getElementById('mode-teams').classList.toggle('active', key === 'teams');
+  document.getElementById('symbols-2player').hidden = key === 'teams';
+  document.getElementById('symbols-teams').hidden = key !== 'teams';
   buildDOM();
   init();
 }
@@ -352,6 +444,36 @@ function setEmoji(markIdx, emoji) {
   refreshMarks();
   updateStatus();
 }
+function setTeamSymbol(teamIdx, playerIdx, emoji) {
+  teamSymbols[teamIdx][playerIdx] = emoji;
+  refreshCustomizeActive();
+  refreshMarks();
+  updateStatus();
+}
+function renderTeamEmojiPicker(teamIdx, playerIdx) {
+  const container = document.getElementById(`team-emoji-${teamIdx}-${playerIdx}`);
+  container.innerHTML = '';
+  const group = COLOR_GROUPS[teamColorIdx[teamIdx]];
+  group.emojis.forEach(emoji => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'emoji-btn'; b.setAttribute('aria-label', emoji);
+    b.textContent = emoji;
+    b.addEventListener('click', () => setTeamSymbol(teamIdx, playerIdx, emoji));
+    container.appendChild(b);
+  });
+}
+function setTeamColor(teamIdx, colorIdx) {
+  const otherIdx = teamIdx === 0 ? 1 : 0;
+  if (teamColorIdx[otherIdx] === colorIdx) return;
+  teamColorIdx[teamIdx] = colorIdx;
+  const group = COLOR_GROUPS[colorIdx];
+  teamSymbols[teamIdx] = [group.emojis[0], group.emojis[1]];
+  renderTeamEmojiPicker(teamIdx, 0);
+  renderTeamEmojiPicker(teamIdx, 1);
+  refreshCustomizeActive();
+  refreshMarks();
+  updateStatus();
+}
 function refreshCustomizeActive() {
   document.querySelectorAll('#theme-swatches .swatch').forEach((b, i) => b.classList.toggle('active', i === themeIdx));
   [0, 1].forEach(markIdx => {
@@ -360,6 +482,19 @@ function refreshCustomizeActive() {
     [...container.children].forEach((b, i) => {
       b.classList.toggle('active', EMOJIS[i] === emojiChoice[markIdx]);
       b.disabled = EMOJIS[i] === emojiChoice[otherIdx];
+    });
+  });
+  [0, 1].forEach(teamIdx => {
+    const otherTeam = teamIdx === 0 ? 1 : 0;
+    const colorContainer = document.getElementById('team-color-' + teamIdx);
+    [...colorContainer.children].forEach((b, i) => {
+      b.classList.toggle('active', i === teamColorIdx[teamIdx]);
+      b.disabled = i === teamColorIdx[otherTeam];
+    });
+    [0, 1].forEach(playerIdx => {
+      const group = COLOR_GROUPS[teamColorIdx[teamIdx]];
+      const ec = document.getElementById(`team-emoji-${teamIdx}-${playerIdx}`);
+      [...ec.children].forEach((b, i) => b.classList.toggle('active', group.emojis[i] === teamSymbols[teamIdx][playerIdx]));
     });
   });
 }
@@ -382,7 +517,34 @@ function buildCustomizePanel() {
       container.appendChild(b);
     });
   });
+  [0, 1].forEach(teamIdx => {
+    const colorContainer = document.getElementById('team-color-' + teamIdx);
+    COLOR_GROUPS.forEach((group, i) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'swatch'; b.setAttribute('aria-label', group.name);
+      b.style.setProperty('--sw', group.hex);
+      b.addEventListener('click', () => setTeamColor(teamIdx, i));
+      colorContainer.appendChild(b);
+    });
+    renderTeamEmojiPicker(teamIdx, 0);
+    renderTeamEmojiPicker(teamIdx, 1);
+  });
   refreshCustomizeActive();
+}
+
+function wireNameInputs() {
+  document.getElementById('name-p0').addEventListener('input', e => { playerNames[0] = e.target.value.slice(0, 24); updateStatus(); });
+  document.getElementById('name-p1').addEventListener('input', e => { playerNames[1] = e.target.value.slice(0, 24); updateStatus(); });
+  document.getElementById('name-team-0').addEventListener('input', e => { teamNames[0] = e.target.value.slice(0, 24); updateStatus(); });
+  document.getElementById('name-team-1').addEventListener('input', e => { teamNames[1] = e.target.value.slice(0, 24); updateStatus(); });
+  [0, 1].forEach(teamIdx => {
+    [0, 1].forEach(playerIdx => {
+      document.getElementById(`name-team-${teamIdx}-${playerIdx}`).addEventListener('input', e => {
+        teamPlayerNames[teamIdx][playerIdx] = e.target.value.slice(0, 24);
+        updateStatus();
+      });
+    });
+  });
 }
 
 document.getElementById('mode-2').addEventListener('click', () => setMode('2'));
@@ -390,6 +552,7 @@ document.getElementById('mode-teams').addEventListener('click', () => setMode('t
 document.getElementById('reset').addEventListener('click', () => setMode(currentMode));
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => applyTheme(themeIdx));
 buildCustomizePanel();
+wireNameInputs();
 applyTheme(0);
 setMode('2');
 </script>
