@@ -1,4 +1,4 @@
-# Ultimate Tic-Tac-Toe
+# ⚛️Ultimate Tic-Tac-Toe
 
 A single-page, self-contained build of Ultimate Tic-Tac-Toe — nine tic-tac-toe boards nested inside one big board. Win three small boards in a row to win the game.
 
