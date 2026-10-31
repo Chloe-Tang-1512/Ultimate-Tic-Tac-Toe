@@ -1,8 +1,8 @@
-# ⚛️Ultimate Tic-Tac-Toe
+# Ultimate Tic-Tac-Toe
 
 A single-page, self-contained build of Ultimate Tic-Tac-Toe — nine tic-tac-toe boards nested inside one big board. Win three small boards in a row to win the game.
 
-No build step, no dependencies, no server. It's one HTML file you can open directly or host anywhere static files are served (GitHub Pages, Netlify, S3, etc.).
+No build step, no dependencies, no server. It's one HTML file you can open directly or host anywhere static files are served.
 
 ## How it works
 
@@ -10,6 +10,7 @@ No build step, no dependencies, no server. It's one HTML file you can open direc
 - Whichever cell you play in sends your opponent to the same-position board next (e.g. play in the top-right cell of a board, and they must play in the top-right board).
 - If that target board is already won or full, your opponent is free to play in any open board.
 - Win three small boards in a row (horizontally, vertically, or diagonally) to win the game. The winning line pulses and the rest of the board dims.
+- Made a mistake? **Undo move** takes back the last move. Each player (or each team in 2v2 mode) gets **one takeback per game**, and it's charged to whoever made the move being taken back. Chips under the buttons show who has one left, and the Undo button is disabled (with an explanation) once that side has used theirs. **New game** resets everything.
 
 ## Modes
 
