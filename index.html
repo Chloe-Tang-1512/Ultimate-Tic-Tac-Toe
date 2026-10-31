@@ -82,8 +82,15 @@
     background: transparent; color: var(--text); border: 1.5px solid var(--line);
     border-radius: 8px; padding: 9px 18px; cursor: pointer; transition: border-color 0.2s ease;
   }
-  button.reset:hover { border-color: var(--muted); }
+  button.reset:hover:not(:disabled) { border-color: var(--muted); }
   button.reset:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
+  button.reset:disabled { opacity: 0.4; cursor: not-allowed; }
+  .actions { display: flex; gap: 10px; }
+  .takebacks { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; justify-content: center; font-size: 0.85rem; }
+  .tb-title { color: var(--muted); font-weight: 600; }
+  .tb-chip { border: 1.5px solid var(--line); border-radius: 20px; padding: 4px 12px; font-weight: 600; }
+  .tb-chip.used { color: var(--muted); border-style: dashed; text-decoration: line-through; opacity: 0.75; }
+  .undo-hint { color: var(--muted); font-size: 0.85rem; text-align: center; max-width: 420px; line-height: 1.4; min-height: 1.2em; margin-top: -4px; }
   details.customize { width: min(94vw, 540px); border: 1.5px solid var(--line); border-radius: 12px; padding: 2px 16px 16px; }
   details.customize summary { cursor: pointer; font-family: Consolas, Menlo, Monaco, 'Courier New', monospace; font-weight: 600; font-size: 0.9rem; padding: 12px 0; list-style: none; color: var(--text); }
   details.customize summary::-webkit-details-marker { display: none; }
@@ -125,7 +132,12 @@
   </div>
   <div class="status" id="status"></div>
   <div class="game" id="game"></div>
-  <button class="reset" id="reset">New game</button>
+  <div class="actions">
+    <button class="reset" id="undo" type="button" disabled>Undo move</button>
+    <button class="reset" id="reset" type="button">New game</button>
+  </div>
+  <div class="takebacks" id="takebacks"></div>
+  <div class="undo-hint" id="undo-hint" aria-live="polite"></div>
   <details class="customize">
     <summary>Customise</summary>
     <div class="custom-row">
@@ -194,7 +206,7 @@ const COLOR_GROUPS = [
   { name: 'Red',    hex: '#D64545', emojis: ['❤️','🟥','🔴','♦️','🩸','💢','⭕'] },
   { name: 'Orange', hex: '#D97706', emojis: ['🧡','🟧','🟠','🔶','🦊','🍊','💥'] },
   { name: 'Yellow', hex: '#CA8A04', emojis: ['💛','🟨','🟡','⭐','⚡','🌟','🍋'] },
-  { name: 'Green',  hex: '#2F9E44', emojis: ['💚','🟩','🟢','🧩','🔋','👽','🍀'] },
+  { name: 'Green',  hex: '#2F9E44', emojis: ['💚','🟩','🟢','🧩','🔋','❇️','✳️'] },
   { name: 'Blue',   hex: '#2563EB', emojis: ['💙','🟦','🔵','🔷','💎','🌀','💧'] },
   { name: 'Purple', hex: '#7C3AED', emojis: ['💜','🟪','🟣','🔮','🍆','🦄','🍇'] }
 ];
@@ -312,12 +324,88 @@ function buildDOM() {
   }
 }
 
+let moveHistory = [];
+// One takeback per side: per player in 2-player mode, per team in 2v2 (side = mark index).
+// It's charged to whoever made the move being taken back.
+let takebackUsed = [false, false];
+const undoBtn = document.getElementById('undo');
+const takebacksEl = document.getElementById('takebacks');
+const undoHintEl = document.getElementById('undo-hint');
+
+function sideLabel(mark) {
+  if (currentMode === 'teams') {
+    const team = esc(teamNames[mark].trim() || `Team ${mark + 1}`);
+    return `${teamSymbols[mark][0]}${teamSymbols[mark][1]} ${team}`;
+  }
+  return `${emojiChoice[mark]} ${esc(playerNames[mark].trim() || `Player ${mark + 1}`)}`;
+}
+function updateUndoButton() {
+  const last = moveHistory[moveHistory.length - 1];
+  const blocked = !!last && takebackUsed[last.mover];
+  undoBtn.disabled = !last || blocked;
+  const unit = currentMode === 'teams' ? 'team' : 'player';
+  takebacksEl.innerHTML = `<span class="tb-title">One takeback per ${unit}:</span>` +
+    [0, 1].map(m => `<span class="tb-chip${takebackUsed[m] ? ' used' : ''}">${sideLabel(m)} — ${takebackUsed[m] ? 'used' : '1 left'}</span>`).join('');
+  if (!last) undoHintEl.textContent = 'Nothing to take back yet.';
+  else if (blocked) undoHintEl.innerHTML = `${sideLabel(last.mover)} has already used their takeback, so that move can’t be undone.`;
+  else undoHintEl.innerHTML = `Undo takes back ${sideLabel(last.mover)}’s last move and uses up their takeback.`;
+}
+function snapshot() {
+  return {
+    cells: cells.slice(), cellPlayer: cellPlayer.slice(), boardWinners: boardWinners.slice(),
+    activeBoard, turnIdx, over, winnerIdx
+  };
+}
+// Rebuilds every board, mark, overlay and highlight from the current game state.
+function renderAll() {
+  const size = N*N;
+  gameEl.classList.toggle('game-over', over);
+  const winLine = (over && winnerIdx !== 'D') ? findWinningLine(boardWinners, N, WIN) : null;
+  for (let b = 0; b < size; b++) {
+    const boardEl = boardEls[b];
+    boardEl.className = 'board';
+    const oldOverlay = boardEl.querySelector('.overlay');
+    if (oldOverlay) oldOverlay.remove();
+    overlayEls[b] = null;
+    if (boardWinners[b] === 'D') {
+      boardEl.classList.add('decided', 'draw');
+    } else if (boardWinners[b] !== null) {
+      boardEl.classList.add('decided');
+      const ov = document.createElement('div');
+      ov.className = 'overlay';
+      ov.textContent = overlayMarkup(boardWinners[b]);
+      boardEl.appendChild(ov);
+      overlayEls[b] = ov;
+    }
+    if (winLine && winLine.includes(b)) boardEl.classList.add('win-line');
+    for (let c = 0; c < size; c++) {
+      const idx = b*size + c;
+      cellEls[b][c].innerHTML = cells[idx] !== null ? cellMarkup(cells[idx], cellPlayer[idx]) : '';
+    }
+  }
+  updateActiveHighlight();
+  updateStatus();
+}
+function undo() {
+  const last = moveHistory[moveHistory.length - 1];
+  if (!last || takebackUsed[last.mover]) return;
+  takebackUsed[last.mover] = true;
+  const s = moveHistory.pop();
+  cells = s.cells; cellPlayer = s.cellPlayer; boardWinners = s.boardWinners;
+  activeBoard = s.activeBoard; turnIdx = s.turnIdx; over = s.over; winnerIdx = s.winnerIdx;
+  renderAll();
+  updateUndoButton();
+}
+
 function init() {
   const size = N*N;
   cells = Array(size*size).fill(null);
   cellPlayer = Array(size*size).fill(null);
   boardWinners = Array(size).fill(null);
   activeBoard = null; turnIdx = 0; over = false; winnerIdx = null;
+  moveHistory = [];
+  takebackUsed = [false, false];
+  updateUndoButton();
   gameEl.classList.remove('game-over');
   statusEl.style.color = '';
   for (let b = 0; b < size; b++) {
@@ -341,6 +429,7 @@ function updateActiveHighlight() {
 }
 
 function updateStatus() {
+  updateUndoButton(); // keeps names/symbols in the takeback chips in sync
   statusEl.classList.remove('over', 'win');
   statusEl.style.color = '';
   if (over) {
@@ -366,6 +455,9 @@ function play(b, c) {
   const isActive = isOpen && (activeBoard === null || activeBoard === b);
   const idx = b*size + c;
   if (!isActive || cells[idx] !== null) return;
+
+  moveHistory.push({ ...snapshot(), mover: turns[turnIdx].mark });
+  updateUndoButton();
 
   const markIdx = turns[turnIdx].mark;
   const player = turns[turnIdx].player;
@@ -550,6 +642,7 @@ function wireNameInputs() {
 document.getElementById('mode-2').addEventListener('click', () => setMode('2'));
 document.getElementById('mode-teams').addEventListener('click', () => setMode('teams'));
 document.getElementById('reset').addEventListener('click', () => setMode(currentMode));
+undoBtn.addEventListener('click', undo);
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => applyTheme(themeIdx));
 buildCustomizePanel();
 wireNameInputs();
